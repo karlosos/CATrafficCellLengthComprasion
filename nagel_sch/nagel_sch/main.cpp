@@ -1,8 +1,10 @@
 #include <stdio.h>
-#include <tchar.h>
+//#include <tchar.h>
 #include <iostream>
-#include <Windows.h>
+//#include <Windows.h>
 #include <time.h>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 static int W = 100;
@@ -127,7 +129,7 @@ int main()
 		}
 		else flaga--;
 		wyswietlanie(d);
-		Sleep(200);
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		system("cls");
 		odswiezanie(d);
 	}
@@ -135,6 +137,7 @@ int main()
 	cout << endl;
 
 	system("PAUSE");
+
 	delete[]d;
 
 	return 0;
