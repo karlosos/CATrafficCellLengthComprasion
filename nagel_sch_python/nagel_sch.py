@@ -54,6 +54,25 @@ def offline_visualisation(iterations):
         time.sleep(1)
 
 
+def image_visualisation(iterations):
+    """
+    Wizualizacja symulacji w formie obrazka
+
+    :param iterations: lista wektorow, gdzie kazdy wektor reprezentuje
+    stan drogi w jednostce czasu
+    :return:
+    """
+    num_of_iterations = len(iterations)
+    N = len(iterations[0])
+    a = np.zeros(shape=(num_of_iterations, N))
+    for i in range(N):
+        for j in range(num_of_iterations):
+            a[j, i] = 1 if iterations[j][i] > -1 else 0
+
+    # showing image
+    plt.imshow(a, cmap="Greys", interpolation="nearest")
+    plt.show()
+
 def clear():
     """
     Czyszczenie ekranu
@@ -158,5 +177,6 @@ for i in range(0, len(flow_arr)):
 
 fundamental_diagram(flow_arr, density_arr)
 
-[flow, iterations] = nagel_sch(80, 0.3, 5, 50)
+[flow, iterations] = nagel_sch(80, 0.3, 5, 120)
+image_visualisation(iterations)
 #offline_visualisation(iterations)
