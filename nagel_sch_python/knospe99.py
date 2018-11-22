@@ -47,16 +47,26 @@ def offline_visualisation(iterations):
     :return:
     """
     for i in iterations:
-        road = ""
-        for j in i:
+        road1 = ""
+        for j in i[0]:
             if j == -1:
-                road += "."
+                road1 += "."
             elif j == -2:
-                road += "▮"
+                road1 += "▮"
             else:
-                road += str(j)
+                road1 += str(j)
+
+        road2 = ""
+        for j in i[1]:
+            if j == -1:
+                road2 += "."
+            elif j == -2:
+                road2 += "▮"
+            else:
+                road2 += str(j)
         clear()
-        print(road)
+        print(road1)
+        print(road2)
         time.sleep(1)
 
 
@@ -96,7 +106,7 @@ def clear():
         _ = system('clear')
 
 
-def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
+def knospe(N, d, vmax, cell_multip=1, num_of_iterations=30):
     """
     Implementacja modelu nagel_sch
 
@@ -115,7 +125,7 @@ def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
     vmax = vmax * cell_multip
     num_of_vehicles = d * N
 
-    cells = np.zeros(N*cell_multip).astype(int)
+    cells = np.zeros((2, N*cell_multip)).astype(int)
     cells = cells - 1
 
     # lambda do znalezienia indeksow gdzie wstawic samochody
@@ -125,54 +135,73 @@ def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
     # aby mialy w miare jednakowe odstepy
     f = lambda m, n: [i * n // m + n // (2 * m) for i in range(m)]
     vehicles_indices = f(np.ceil(num_of_vehicles).astype(int), N)
-    vehicles_speeds = np.random.randint(0, vmax, N)
+    vehicles_speeds_lane_1 = np.random.randint(0, vmax, N)
+    vehicles_speeds_lane_2 = np.random.randint(0, vmax, N)
 
     # wypelniamy droge losowymi samochodami (predkosciami)
     vehicles_speeds_index = 0
     for index in vehicles_indices:
         index = index * cell_multip
-        cells[index] = vehicles_speeds[vehicles_speeds_index]
+        cells[0][index] = vehicles_speeds_lane_1[vehicles_speeds_index]
+        cells[1][index] = vehicles_speeds_lane_2[vehicles_speeds_index]
         for tail_index in range(1, cell_multip):
-            cells[index-tail_index] = -2
+            cells[0][index-tail_index] = -2
+            cells[1][index-tail_index] = -2
         vehicles_speeds_index += 1
 
     # lista wszystkich iteracji
     # symulacja offline, najpierw wszystko
     # wyliczane, a na koncu wyswietlana wizualizacja
     iterations = []
+    iterations.append(np.copy(cells))
 
     for x in range(0, num_of_iterations):
         # zwiekszanie predkosci
-        cells[cells >= 0] = cells[cells >= 0] + 1
-        cells[cells > vmax] = vmax
+        cells[:][cells >= 0] = cells[:][cells >= 0] + 1
+        cells[:][cells > vmax] = vmax
+
+        # pobierz indeksy pojazdow ktore maja predkosc wieksza niz 0
+        # pierwszy element to indeks pasa
+        # drugi element to indeks pojazdu na pasie
+        moving_cars = np.transpose(np.nonzero(cells > 0))
 
         # hamowanie
-        for i in np.nonzero(cells >= 0)[0]:
-            v = cells[i]
+        for i in moving_cars:
+            lane_index = i[0]
+            car_index = i[1]
+            v = cells[lane_index][car_index]
+            print("iteration: ", x, " index:", i, " v:", v)
             for k in range(1, v + 1):
-                if cells[(i + k) % (N*cell_multip)] != -1:
-                    cells[i] = k - 1
+                if cells[lane_index][(car_index + k) % (N*cell_multip)] != -1:
+                    cells[lane_index][car_index] = k - 1
                     break
 
-        # losowe hamowanie
-        for i in np.nonzero(cells > 0)[0]:
+        # # losowe hamowanie
+        moving_cars = np.transpose(np.nonzero(cells > 0))
+        for i in moving_cars:
             if random.random() < 0.3:
-                cells[i] = cells[i] - 1
+                lane_index = i[0]
+                car_index = i[1]
+                cells[lane_index][car_index] = cells[lane_index][car_index] - 1
 
+        moving_cars = np.transpose(np.nonzero(cells > 0))
         # przemieszczanie
-        for i in np.nonzero(cells > 0)[0]:
-            v = cells[i]
-            j = (i + v) % (N * cell_multip)
+        for i in moving_cars:
+            lane_index = i[0]
+            car_index = i[1]
+
+            v = cells[lane_index][car_index]
+            j = (car_index + v) % (N * cell_multip)
 
             # czysc stary ogon
             for tail_index in range(1, cell_multip):
-                cells[i - tail_index] = -1
-            cells[i] = -1
+                cells[lane_index][car_index - tail_index] = -1
+            cells[lane_index][car_index] = -1
 
-            cells[j] = v
+            cells[lane_index][j] = v
             # ogon pojazdu
             for tail_index in range(1, cell_multip):
-                cells[j - tail_index] = -2
+                cells[lane_index][j - tail_index] = -2
 
         # dodanie drogi do listy iteracji
         iterations.append(np.copy(cells))
@@ -188,17 +217,16 @@ def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
 ################
 
 
-#density_arr = np.arange(0.05, 0.6, 0.01)
-#flow_arr = np.copy(density_arr)
+density_arr = np.arange(0.05, 0.6, 0.01)
+flow_arr = np.copy(density_arr)
 
-# badamy model dla roznych gestosci ruchu
-#for i in range(0, len(flow_arr)):
-#    [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7)
-#    flow_arr[i] = flow
+# # badamy model dla roznych gestosci ruchu
+# for i in range(0, len(flow_arr)):
+#     [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7)
+#     flow_arr[i] = flow
+#
+# fundamental_diagram(flow_arr, density_arr)
 
-#fundamental_diagram(flow_arr, density_arr)
-
-[flow, iterations] = nagel_sch(20, 0.8, 5, 7, 120)
+[flow, iterations] = knospe(20, 0.8, 5, 5, 120)
 #image_visualisation(iterations)
-#offline_visualisation(iterations)
-offline_visualisation(iterations[-2:])
+offline_visualisation(iterations)
