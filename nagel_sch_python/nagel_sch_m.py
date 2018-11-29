@@ -188,16 +188,17 @@ def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
 ################
 
 
-density_arr = np.arange(0.05, 0.6, 0.01)
-flow_arr = np.copy(density_arr)
+#density_arr = np.arange(0.05, 0.6, 0.01)
+#flow_arr = np.copy(density_arr)
 
 # badamy model dla roznych gestosci ruchu
-for i in range(0, len(flow_arr)):
-    [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7)
-    flow_arr[i] = flow
+#for i in range(0, len(flow_arr)):
+#    [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7)
+#    flow_arr[i] = flow
 
-fundamental_diagram(flow_arr, density_arr)
+#fundamental_diagram(flow_arr, density_arr)
 
-[flow, iterations] = nagel_sch(80, 0.3, 5, 7, 120)
-image_visualisation(iterations)
-offline_visualisation(iterations)
+# [flow, iterations] = nagel_sch(20, 0.8, 5, 7, 120)
+# #image_visualisation(iterations)
+# #offline_visualisation(iterations)
+# offline_visualisation(iterations[-2:])
