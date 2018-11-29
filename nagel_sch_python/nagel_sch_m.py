@@ -198,7 +198,7 @@ def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
 
 #fundamental_diagram(flow_arr, density_arr)
 
-[flow, iterations] = nagel_sch(20, 0.8, 5, 7, 120)
-#image_visualisation(iterations)
-#offline_visualisation(iterations)
-offline_visualisation(iterations[-2:])
+# [flow, iterations] = nagel_sch(20, 0.8, 5, 7, 120)
+# #image_visualisation(iterations)
+# #offline_visualisation(iterations)
+# offline_visualisation(iterations[-2:])

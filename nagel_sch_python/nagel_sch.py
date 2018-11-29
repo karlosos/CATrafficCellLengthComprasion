@@ -128,7 +128,8 @@ def nagel_sch(N, d, vmax, num_of_iterations=30):
     # symulacja offline, najpierw wszystko
     # wyliczane, a na koncu wyswietlana wizualizacja
     iterations = []
-
+    
+    flow_sum = 0
     for x in range(0, num_of_iterations):
         # zwiekszanie predkosci
         cells[cells >= 0] = cells[cells >= 0] + 1
@@ -156,11 +157,13 @@ def nagel_sch(N, d, vmax, num_of_iterations=30):
 
         # dodanie drogi do listy iteracji
         iterations.append(np.copy(cells))
+        
+        average_velocity = np.sum(cells[cells >= 0])/np.sum(cells >= 0)
+        flow_sum += d * average_velocity
 
-    # liczymy srednia predkosc z ostatniej iteracji
-    average_velocity = np.sum(cells[cells >= 0])/np.sum(cells >= 0)
-    flow = d * average_velocity
-    return flow, iterations
+    # liczymy sredni flow ze wszystkich iteracji (w calym czasie symulacji)
+    average_flow = flow_sum/num_of_iterations
+    return average_flow, iterations
 
 ################
 # MAIN
@@ -172,7 +175,7 @@ flow_arr = np.copy(density_arr)
 
 # badamy model dla roznych gestosci ruchu
 for i in range(0, len(flow_arr)):
-    [flow, iterations] = nagel_sch(1000, density_arr[i], 5)
+    [flow, iterations] = nagel_sch(10000, density_arr[i], 5)
     flow_arr[i] = flow
 
 fundamental_diagram(flow_arr, density_arr)

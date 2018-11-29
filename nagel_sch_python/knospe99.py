@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Zmodyfikowana wersja modelu NagelSch z zmieniona iloscia komorek. Mozliwosc uruchomienia
-modelu jako klasycznego modelu NagelSch.
+Model knospe-santem 99
 """
 
 import numpy as np
@@ -108,7 +107,7 @@ def clear():
 
 def knospe(N, d, vmax, cell_multip=1, num_of_iterations=30):
     """
-    Implementacja modelu nagel_sch
+    Implementacja modelu knospe
 
     :param N: dlugosc drogi
     :param d: gestosc (ile % pojazdow na drodze, np. 0.5 to polowa
@@ -127,6 +126,10 @@ def knospe(N, d, vmax, cell_multip=1, num_of_iterations=30):
 
     cells = np.zeros((2, N*cell_multip)).astype(int)
     cells = cells - 1
+
+    # parametry do rickert
+    l_other_back = vmax
+    p_change = 1
 
     # lambda do znalezienia indeksow gdzie wstawic samochody
     # m to liczba elementow do wstawienia do macierzy
@@ -156,6 +159,65 @@ def knospe(N, d, vmax, cell_multip=1, num_of_iterations=30):
     iterations.append(np.copy(cells))
 
     for x in range(0, num_of_iterations):
+        # zmienianie pasow (ruch poprzeczny)
+
+        # patrz do przodu czy ktos jest przed toba
+        # zobacz na drugim pasie czy tam jest lepiej
+        # zobacz w tyl na drugim pasie czy komus nie zajedziesz drogi
+        # pobierz indeksy pojazdow ktore maja predkosc wieksza niz 0
+        # pierwszy element to indeks pasa
+        # drugi element to indeks pojazdu na pasie
+        moving_cars = np.transpose(np.nonzero(cells > 0))
+
+        for i in moving_cars:
+            lane_index = i[0]
+            car_index = i[1]
+
+            v = cells[lane_index][car_index]
+            l = v+1
+            l_other = l
+
+            # sprawdz czy jakis samochod bedzie blokowac
+            is_someone_ahead = False
+            for k in range(1, l):
+                if cells[lane_index][(car_index + k) % (N * cell_multip)] != -1:
+                    is_someone_ahead = True
+                    break
+
+            if is_someone_ahead:
+                # sprawdz czy na drugim pasie ktos bedzie blokowac
+                is_someone_ahead_other_lane = False
+                lane_index_other = 1 if lane_index == 0 else 0
+                for k in range(1, l_other):
+                    if cells[lane_index_other][(car_index + k) % (N * cell_multip)] != -1:
+                        is_someone_ahead_other_lane = True
+                        break
+
+                if not is_someone_ahead_other_lane:
+                    # czy zajedziemy komus droge
+                    is_someone_before_other_lane = False
+                    for k in range(1, l_other_back):
+                        if cells[lane_index_other][(car_index - k) % (N * cell_multip)] != -1:
+                            is_someone_before_other_lane = True
+                            break
+
+                    if not is_someone_before_other_lane:
+                        # czy zmienic pas (losowosc)
+                        if random.random() < 0.8:
+                            # print("Zmiana pasa, wooohoooo!")
+                            # zmiana pasa - przeniesienie pojazdu z jednego pasu na drugi
+
+                            # czysc stary pas
+                            for tail_index in range(1, cell_multip):
+                                cells[lane_index][car_index - tail_index] = -1
+                            cells[lane_index][car_index] = -1
+
+                            # nowy pas
+                            cells[lane_index_other][car_index] = v
+                            # ogon pojazdu
+                            for tail_index in range(1, cell_multip):
+                                cells[lane_index_other][car_index - tail_index] = -2
+
         # zwiekszanie predkosci
         cells[:][cells >= 0] = cells[:][cells >= 0] + 1
         cells[:][cells > vmax] = vmax
@@ -170,7 +232,7 @@ def knospe(N, d, vmax, cell_multip=1, num_of_iterations=30):
             lane_index = i[0]
             car_index = i[1]
             v = cells[lane_index][car_index]
-            print("iteration: ", x, " index:", i, " v:", v)
+            #print("iteration: ", x, " index:", i, " v:", v)
             for k in range(1, v + 1):
                 if cells[lane_index][(car_index + k) % (N*cell_multip)] != -1:
                     cells[lane_index][car_index] = k - 1
@@ -217,16 +279,16 @@ def knospe(N, d, vmax, cell_multip=1, num_of_iterations=30):
 ################
 
 
-density_arr = np.arange(0.05, 0.6, 0.01)
-flow_arr = np.copy(density_arr)
-
+# density_arr = np.arange(0.05, 0.6, 0.01)
+# flow_arr = np.copy(density_arr)
+#
 # # badamy model dla roznych gestosci ruchu
 # for i in range(0, len(flow_arr)):
-#     [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7)
+#     [flow, iterations] = knospe(1000, density_arr[i], 5, 1)
 #     flow_arr[i] = flow
 #
 # fundamental_diagram(flow_arr, density_arr)
-
-[flow, iterations] = knospe(20, 0.8, 5, 5, 120)
-#image_visualisation(iterations)
-offline_visualisation(iterations)
+#
+# [flow, iterations] = knospe(1000, 0.3, 5, 1, 120)
+# #image_visualisation(iterations)
+# offline_visualisation(iterations)
