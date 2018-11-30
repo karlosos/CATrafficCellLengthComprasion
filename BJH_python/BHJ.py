@@ -129,7 +129,7 @@ def nagel_sch(N, d, vmax, num_of_iterations=30):
     # symulacja offline, najpierw wszystko
     # wyliczane, a na koncu wyswietlana wizualizacja
     iterations = []
-    treshhold_probability = 0.2
+    treshhold_probability = 0.8
     p_curr = [1 if probability > treshhold_probability else 0 for probability in np.random.rand(cells.shape[0])]
     p_prev = [1 for el in p_curr]
     flow_sum = 0
