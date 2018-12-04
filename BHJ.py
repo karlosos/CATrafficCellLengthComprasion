@@ -7,9 +7,9 @@ import random
 import data_presentation as dp
 
 
-def nagel_sch(N, d, vmax, num_of_iterations=30):
+def bhj(N, d, vmax, num_of_iterations=30):
     """
-   Implementacja modelu nagel_sch
+   Implementacja modelu BHJ
 
    :param N: dlugosc drogi
    :param d: gestosc (ile % pojazdow na drodze, np. 0.5 to polowa
@@ -46,8 +46,8 @@ def nagel_sch(N, d, vmax, num_of_iterations=30):
     # symulacja offline, najpierw wszystko
     # wyliczane, a na koncu wyswietlana wizualizacja
     iterations = []
-    treshhold_probability = 0.8
-    p_curr = [1 if probability > treshhold_probability else 0 for probability in np.random.rand(cells.shape[0])]
+    threshold_probability = 0.8
+    p_curr = [1 if probability > threshold_probability else 0 for probability in np.random.rand(cells.shape[0])]
     p_prev = [1 for el in p_curr]
     flow_sum = 0
     for x in range(0, num_of_iterations):
@@ -59,7 +59,7 @@ def nagel_sch(N, d, vmax, num_of_iterations=30):
         cells[cells > 0] = cells[cells > 0] + 1
         cells[cells > vmax] = vmax
         p_prev = p_curr
-        p_curr = [1 if probability > treshhold_probability else 0 for probability in np.random.rand(cells.shape[0])]
+        p_curr = [1 if probability > threshold_probability else 0 for probability in np.random.rand(cells.shape[0])]
 
         # hamowanie
         for i in np.nonzero(cells >= 0)[0]:
@@ -102,12 +102,12 @@ def main():
 
     # badamy model dla roznych gestosci ruchu
     for i in range(0, len(flow_arr)):
-        [flow, iterations] = nagel_sch(10000, density_arr[i], 5)
+        [flow, iterations] = bhj(10000, density_arr[i], 5)
         flow_arr[i] = flow
 
     dp.fundamental_diagram(flow_arr, density_arr)
 
-    [flow, iterations] = nagel_sch(80, 0.3, 5, 120)
+    [flow, iterations] = bhj(80, 0.3, 5, 120)
     dp.offline_visualisation_one_lane(iterations)
 
 
