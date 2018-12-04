@@ -2,10 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import rickert_asym
-import knospe99
-import nagel_sch_m
+import rickert_sym
 
-def fundamental_diagram(flow_arr, density_arr, name):
+def fundamental_diagram_comprasion(flow_arr, density_arr, name):
     """
     Rysowanie diagramu fundamentalnego, czyli wykresu gestosci
     (ilosc pojazdow na drodze) do flow (ilosc pojazdow na sekunde)
@@ -29,19 +28,20 @@ def fundamental_diagram(flow_arr, density_arr, name):
     plt.xlabel('Density [vehicles/m]')
 
 density_arr = np.arange(0.05, 0.6, 0.01)
-flow_arr_knospe = np.copy(density_arr)
-flow_arr_nagel = np.copy(density_arr)
+flow_arr_1 = np.copy(density_arr)
+flow_arr_2 = np.copy(density_arr)
 
-# knospe
-for i in range(0, len(flow_arr_knospe)):
+# model 1
+for i in range(0, len(flow_arr_1)):
     [flow, iterations] = rickert_asym.rickert_asym(1000, density_arr[i], 5, 1)
-    flow_arr_knospe[i] = flow
+    flow_arr_1[i] = flow
 
-# nagel
-for i in range(0, len(flow_arr_nagel)):
-    [flow, iterations] = knospe99.knospe(1000, density_arr[i], 5, 1)
-    flow_arr_nagel[i] = flow
+# model 2
+for i in range(0, len(flow_arr_2)):
+    [flow, iterations] = rickert_sym.rickert_sym(1000, density_arr[i], 5, 1)
+    flow_arr_2[i] = flow
 
-fundamental_diagram(flow_arr_nagel, density_arr, "Knospe")
-fundamental_diagram(flow_arr_knospe, density_arr, "Rickert")
+fundamental_diagram_comprasion(flow_arr_1, density_arr, "Rickert asym")
+fundamental_diagram_comprasion(flow_arr_2, density_arr, "Rickert sym")
+
 plt.show()

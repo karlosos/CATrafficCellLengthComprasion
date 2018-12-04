@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Model knospe-santem 99
+Model rickert symetryczny
 """
 
 import numpy as np
@@ -10,9 +10,9 @@ import random
 
 import data_presentation as dp
 
-def knospe(N, d, vmax, cell_multip=1, num_of_iterations=30):
+def rickert_sym(N, d, vmax, cell_multip=1, num_of_iterations=30):
     """
-    Implementacja modelu knospe
+    Implementacja modelu rickert symetryczny
 
     :param N: dlugosc drogi
     :param d: gestosc (ile % pojazdow na drodze, np. 0.5 to polowa
@@ -190,11 +190,11 @@ def main():
 
     # badamy model dla roznych gestosci ruchu
     for i in range(0, len(flow_arr)):
-        [flow, iterations] = knospe(1000, density_arr[i], 5, 1)
+        [flow, iterations] = rickert_sym(1000, density_arr[i], 5, 1)
         flow_arr[i] = flow
 
     dp.fundamental_diagram(flow_arr, density_arr)
-    [flow, iterations] = knospe(1000, 0.3, 5, 1, 120)
+    [flow, iterations] = rickert_sym(1000, 0.3, 5, 1, 120)
     dp.offline_visualisation_two_lanes(iterations)
 
 
