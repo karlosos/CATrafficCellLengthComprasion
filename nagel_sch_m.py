@@ -8,93 +8,8 @@ modelu jako klasycznego modelu NagelSch.
 
 import numpy as np
 import random
-import time
-from os import system, name
-import matplotlib.pyplot as plt
 
-
-def fundamental_diagram(flow_arr, density_arr):
-    """
-    Rysowanie diagramu fundamentalnego, czyli wykresu gestosci
-    (ilosc pojazdow na drodze) do flow (ilosc pojazdow na sekunde)
-
-    :param flow_arr: wektor zbadanych flow dla roznych gestosci
-    :param density_arr: wektor badanych gestosci
-    :return:
-    """
-    # aproksymacja funkcji wielomianem stopnia 7
-    z = np.polyfit(density_arr, flow_arr, 7)
-    p = np.poly1d(z)
-
-    # wektor osi x (gestosci) dla ktorych aproksymujemy flow
-    xp = np.arange(density_arr[0], density_arr[density_arr.size - 1], 0.001)
-
-    # punkty pomiarowe
-    plt.plot(density_arr, flow_arr, 'bo')
-    # aproksymacja
-    plt.plot(xp, p(xp), 'g--')
-    plt.ylabel('Flow [vehicles/s]')
-    plt.xlabel('Density [vehicles/m]')
-    plt.show()
-
-
-def offline_visualisation(iterations):
-    """
-    Wizualizacja offline na podstawie wymikow zapisanych w iterations
-
-    :param iterations: lista wektorow, gdzie kazdy wektor reprezentuje
-    stan drogi w jednostce czasu
-    :return:
-    """
-    for i in iterations:
-        road = ""
-        for j in i:
-            if j == -1:
-                road += "."
-            elif j == -2:
-                road += "▮"
-            else:
-                road += str(j)
-        clear()
-        print(road)
-        time.sleep(1)
-
-
-def image_visualisation(iterations):
-    """
-    Wizualizacja symulacji w formie obrazka
-
-    :param iterations: lista wektorow, gdzie kazdy wektor reprezentuje
-    stan drogi w jednostce czasu
-    :return:
-    """
-    num_of_iterations = len(iterations)
-    N = len(iterations[0])
-    a = np.zeros(shape=(num_of_iterations, N))
-    for i in range(N):
-        for j in range(num_of_iterations):
-            a[j, i] = 0 if iterations[j][i] == -1 else 1
-
-    # showing image
-    plt.imshow(a, cmap="Greys", interpolation="nearest")
-    plt.show()
-
-
-def clear():
-    """
-    Czyszczenie ekranu
-
-    Funkcja przystosowana do Windowsa i Linuxa/MacOSX
-    :return:
-    """
-    # for windows
-    if name == 'nt':
-        _ = system('cls')
-
-        # for mac and linux(here, os.name is 'posix')
-    else:
-        _ = system('clear')
-
+import data_presentation as dp
 
 def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
     """
@@ -187,18 +102,22 @@ def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
 # MAIN
 ################
 
+def main():
+    density_arr = np.arange(0.05, 0.6, 0.01)
+    flow_arr = np.copy(density_arr)
 
-#density_arr = np.arange(0.05, 0.6, 0.01)
-#flow_arr = np.copy(density_arr)
+    #badamy model dla roznych gestosci ruchu
+    for i in range(0, len(flow_arr)):
+       [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7)
+       flow_arr[i] = flow
 
-# badamy model dla roznych gestosci ruchu
-#for i in range(0, len(flow_arr)):
-#    [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7)
-#    flow_arr[i] = flow
+    dp.fundamental_diagram(flow_arr, density_arr)
 
-#fundamental_diagram(flow_arr, density_arr)
+    [flow, iterations] = nagel_sch(20, 0.8, 5, 7, 120)
+    print(iterations[-2:])
+    dp.image_visualisation(iterations)
+    dp.offline_visualisation_one_lane(iterations[:])
 
-# [flow, iterations] = nagel_sch(20, 0.8, 5, 7, 120)
-# #image_visualisation(iterations)
-# #offline_visualisation(iterations)
-# offline_visualisation(iterations[-2:])
+
+if __name__ == "__main__":
+    main()
