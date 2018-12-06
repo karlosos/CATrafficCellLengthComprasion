@@ -11,7 +11,7 @@ import random
 import data_presentation as dp
 
 
-def rickert_asym(N, d, vmax, cell_multip=1, num_of_iterations=30):
+def rickert_asym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
     """
     Implementacja modelu Rickert asymetrycznego
 
@@ -19,7 +19,7 @@ def rickert_asym(N, d, vmax, cell_multip=1, num_of_iterations=30):
     :param d: gestosc (ile % pojazdow na drodze, np. 0.5 to polowa
     drogi zajeta przez pojazdy)
     :param vmax: predkosc maksymalna
-    :param cell_multip: na ile komorek powinna byc podzielona jedna komorka z normalnego modelu
+    :param cell_length: jaka dlugosc w metrach ma miec jedna komorka
     :param num_of_iterations: ile iteracji symulacji (jednostek czasu)
 
     :return: (flow, iterations) - flow to wektor zbadanych przepustowosci drogi (pojazdow/s), iterations
@@ -27,8 +27,12 @@ def rickert_asym(N, d, vmax, cell_multip=1, num_of_iterations=30):
     sluzy do budowania diagramu fundamentalnego
     """
 
+    # wyliczenie ile komorek modelu przypada na jedna komorka standardowego modelu NagelSch
+    car_length = 7.5
+    cell_multip = int(car_length/cell_length)
+
     vmax = vmax * cell_multip
-    num_of_vehicles = d * N
+    num_of_vehicles = d * 2 * N
 
     cells = np.zeros((2, N*cell_multip)).astype(int)
     cells = cells - 1
@@ -44,6 +48,7 @@ def rickert_asym(N, d, vmax, cell_multip=1, num_of_iterations=30):
     # aby mialy w miare jednakowe odstepy
     f = lambda m, n: [i * n // m + n // (2 * m) for i in range(m)]
     vehicles_indices = f(np.ceil(num_of_vehicles).astype(int), N)
+    vehicles_indices = np.unique(vehicles_indices)
     vehicles_speeds_lane_1 = np.random.randint(0, vmax, N)
     vehicles_speeds_lane_2 = np.random.randint(0, vmax, N)
 
@@ -51,10 +56,10 @@ def rickert_asym(N, d, vmax, cell_multip=1, num_of_iterations=30):
     vehicles_speeds_index = 0
     for index in vehicles_indices:
         index = index * cell_multip
-        cells[0][index] = vehicles_speeds_lane_1[vehicles_speeds_index]
+        #cells[0][index] = vehicles_speeds_lane_1[vehicles_speeds_index]
         cells[1][index] = vehicles_speeds_lane_2[vehicles_speeds_index]
         for tail_index in range(1, cell_multip):
-            cells[0][index-tail_index] = -2
+            #cells[0][index-tail_index] = -2
             cells[1][index-tail_index] = -2
         vehicles_speeds_index += 1
 
@@ -94,7 +99,7 @@ def rickert_asym(N, d, vmax, cell_multip=1, num_of_iterations=30):
 
                 if not is_someone_before_other_lane:
                     # czy zmienic pas (losowosc)
-                    if random.random() < 0.8:
+                    if random.random() < 1:
                         # print("Zmiana pasa, wooohoooo!")
                         # zmiana pasa - przeniesienie pojazdu z jednego pasu na drugi
 
@@ -137,7 +142,7 @@ def rickert_asym(N, d, vmax, cell_multip=1, num_of_iterations=30):
 
                         if not is_someone_before_other_lane:
                             # czy zmienic pas (losowosc)
-                            if random.random() < 0.8:
+                            if random.random() < 1:
                                 # print("Zmiana pasa, wooohoooo!")
                                 # zmiana pasa - przeniesienie pojazdu z jednego pasu na drugi
 
@@ -207,7 +212,6 @@ def rickert_asym(N, d, vmax, cell_multip=1, num_of_iterations=30):
     flow = d * average_velocity
     return flow, iterations
 
-
 ################
 # MAIN
 ################
@@ -223,9 +227,10 @@ def main():
 
     dp.fundamental_diagram(flow_arr, density_arr)
 
-    [flow, iterations] = rickert_asym(1000, 0.3, 5, 7, 120)
+    [flow, iterations] = rickert_asym(1000, 0.4, 5, 3, 120)
     print(iterations[-2:][0])
     dp.offline_visualisation_two_lanes(iterations[:])
+
 
 
 if __name__ == "__main__":
