@@ -10,7 +10,7 @@ import random
 
 import data_presentation as dp
 
-def rickert_sym(N, d, vmax, cell_multip=1, num_of_iterations=30):
+def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
     """
     Implementacja modelu rickert symetryczny
 
@@ -18,13 +18,17 @@ def rickert_sym(N, d, vmax, cell_multip=1, num_of_iterations=30):
     :param d: gestosc (ile % pojazdow na drodze, np. 0.5 to polowa
     drogi zajeta przez pojazdy)
     :param vmax: predkosc maksymalna
-    :param cell_multip: na ile komorek powinna byc podzielona jedna komorka z normalnego modelu
+    :param cell_length: jaka dlugosc w metrach ma miec jedna komorka
     :param num_of_iterations: ile iteracji symulacji (jednostek czasu)
 
     :return: (flow, iterations) - flow to wektor zbadanych przepustowosci drogi (pojazdow/s), iterations
     to lista wektorow, gdzie kazdy wektor to reprezentacja drogi. Iterations sluzy do wizualizacji symulacji, flow
     sluzy do budowania diagramu fundamentalnego
     """
+
+    # wyliczenie ile komorek modelu przypada na jedna komorka standardowego modelu NagelSch
+    car_length = 7.5
+    cell_multip = int(car_length/cell_length)
 
     vmax = vmax * cell_multip
     num_of_vehicles = d * N
