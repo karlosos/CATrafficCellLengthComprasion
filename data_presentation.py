@@ -111,7 +111,7 @@ def image_visualisation(iterations):
     a = np.zeros(shape=(num_of_iterations, N))
     for i in range(N):
         for j in range(num_of_iterations):
-            a[j, i] = 1 if iterations[j][i] > -1 else 0
+            a[j, i] = 0 if iterations[j][i] == -1 else 1
 
     # showing image
     plt.imshow(a, cmap="Greys", interpolation="nearest")

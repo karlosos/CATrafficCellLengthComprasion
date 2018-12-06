@@ -11,7 +11,7 @@ import random
 
 import data_presentation as dp
 
-def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
+def nagel_sch(N, d, vmax, cell_length=7.5, num_of_iterations=30):
     """
     Implementacja modelu nagel_sch
 
@@ -19,13 +19,17 @@ def nagel_sch(N, d, vmax, cell_multip=1, num_of_iterations=30):
     :param d: gestosc (ile % pojazdow na drodze, np. 0.5 to polowa
     drogi zajeta przez pojazdy)
     :param vmax: predkosc maksymalna
-    :param cell_multip: na ile komorek powinna byc podzielona jedna komorka z normalnego modelu
+    :param cell_length: jaka dlugosc w metrach ma miec jedna komorka
     :param num_of_iterations: ile iteracji symulacji (jednostek czasu)
 
     :return: (flow, iterations) - flow to wektor zbadanych przepustowosci drogi (pojazdow/s), iterations
     to lista wektorow, gdzie kazdy wektor to reprezentacja drogi. Iterations sluzy do wizualizacji symulacji, flow
     sluzy do budowania diagramu fundamentalnego
     """
+
+    # wyliczenie ile komorek modelu przypada na jedna komorka standardowego modelu NagelSch
+    car_length = 7.5
+    cell_multip = int(car_length/cell_length)
 
     vmax = vmax * cell_multip
     num_of_vehicles = d * N
@@ -108,15 +112,14 @@ def main():
 
     #badamy model dla roznych gestosci ruchu
     for i in range(0, len(flow_arr)):
-       [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7)
+       [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7.5)
        flow_arr[i] = flow
 
     dp.fundamental_diagram(flow_arr, density_arr)
 
-    [flow, iterations] = nagel_sch(20, 0.8, 5, 7, 120)
-    print(iterations[-2:])
+    [flow, iterations] = nagel_sch(20, 0.8, 5, 0.2, 120)
     dp.image_visualisation(iterations)
-    dp.offline_visualisation_one_lane(iterations[:])
+    dp.offline_visualisation_one_lane(iterations[-2:])
 
 
 if __name__ == "__main__":
