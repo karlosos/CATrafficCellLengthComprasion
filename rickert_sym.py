@@ -194,12 +194,12 @@ def main():
 
     # badamy model dla roznych gestosci ruchu
     for i in range(0, len(flow_arr)):
-        [flow, iterations] = rickert_sym(1000, density_arr[i], 5, 1)
+        [flow, iterations] = rickert_sym(1000, density_arr[i], 5, 7)
         flow_arr[i] = flow
 
     dp.fundamental_diagram(flow_arr, density_arr)
     [flow, iterations] = rickert_sym(1000, 0.3, 5, 1, 120)
-    dp.offline_visualisation_two_lanes(iterations)
+    dp.offline_visualisation_two_lanes(iterations[-3:])
 
 
 if __name__ == "__main__":

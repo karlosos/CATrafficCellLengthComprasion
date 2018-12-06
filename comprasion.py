@@ -23,25 +23,25 @@ def fundamental_diagram_comprasion(flow_arr, density_arr, name):
     # punkty pomiarowe
     plt.plot(density_arr, flow_arr, 'o')
     # aproksymacja
-    plt.plot(xp, p(xp), '--')
+    line, = plt.plot(xp, p(xp), '--', label=name)
     plt.ylabel('Flow [vehicles/s]')
     plt.xlabel('Density [vehicles/m]')
 
-density_arr = np.arange(0.05, 0.6, 0.01)
+density_arr = np.arange(0.05, 0.45, 0.01)
 flow_arr_1 = np.copy(density_arr)
 flow_arr_2 = np.copy(density_arr)
 
 # model 1
 for i in range(0, len(flow_arr_1)):
-    [flow, iterations] = rickert_asym.rickert_asym(1000, density_arr[i], 5, 1)
+    [flow, iterations] = rickert_asym.rickert_asym(5000, density_arr[i], 5, 7.5)
     flow_arr_1[i] = flow
 
 # model 2
 for i in range(0, len(flow_arr_2)):
-    [flow, iterations] = rickert_sym.rickert_sym(1000, density_arr[i], 5, 1)
+    [flow, iterations] = rickert_sym.rickert_sym(5000, density_arr[i], 5, 7.5)
     flow_arr_2[i] = flow
 
 fundamental_diagram_comprasion(flow_arr_1, density_arr, "Rickert asym")
 fundamental_diagram_comprasion(flow_arr_2, density_arr, "Rickert sym")
-
+plt.legend()
 plt.show()
