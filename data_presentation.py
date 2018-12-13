@@ -73,6 +73,8 @@ def offline_visualisation_two_lanes(iterations):
         clear()
         print(road1)
         print(road2)
+        print(np.sum(i >= 0))
+        print("------------")
         time.sleep(1)
 
 def offline_visualisation_one_lane(iterations):

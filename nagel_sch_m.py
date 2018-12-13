@@ -107,19 +107,19 @@ def nagel_sch(N, d, vmax, cell_length=7.5, num_of_iterations=30):
 ################
 
 def main():
-    density_arr = np.arange(0.05, 0.6, 0.01)
-    flow_arr = np.copy(density_arr)
+    # density_arr = np.arange(0.05, 0.6, 0.01)
+    # flow_arr = np.copy(density_arr)
+    #
+    # #badamy model dla roznych gestosci ruchu
+    # for i in range(0, len(flow_arr)):
+    #    [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7.5)
+    #    flow_arr[i] = flow
+    #
+    # dp.fundamental_diagram(flow_arr, density_arr)
 
-    #badamy model dla roznych gestosci ruchu
-    for i in range(0, len(flow_arr)):
-       [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7.5)
-       flow_arr[i] = flow
-
-    dp.fundamental_diagram(flow_arr, density_arr)
-
-    [flow, iterations] = nagel_sch(20, 0.8, 5, 0.2, 120)
-    dp.image_visualisation(iterations)
-    dp.offline_visualisation_one_lane(iterations[-2:])
+    [flow, iterations] = nagel_sch(20, 0.8, 5, 0.5, 120)
+    #dp.image_visualisation(iterations)
+    dp.offline_visualisation_one_lane(iterations[:])
 
 
 if __name__ == "__main__":

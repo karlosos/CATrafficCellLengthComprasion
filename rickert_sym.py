@@ -37,7 +37,7 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
     cells = cells - 1
 
     # parametry do rickert
-    l_other_back = vmax
+    l_other_back = vmax + 1
     p_change = 1
 
     # lambda do znalezienia indeksow gdzie wstawic samochody
@@ -76,7 +76,10 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
         # pobierz indeksy pojazdow ktore maja predkosc wieksza niz 0
         # pierwszy element to indeks pasa
         # drugi element to indeks pojazdu na pasie
-        moving_cars = np.transpose(np.nonzero(cells > 0))
+        moving_cars = np.transpose(np.nonzero(cells >= 0))
+        # kopia drogi - aby zapewnic rownoleglosc fazy zmiany pasow
+        cells_copy = np.zeros((2, N*cell_multip)).astype(int)
+        cells_copy = cells_copy - 1
 
         for i in moving_cars:
             lane_index = i[0]
@@ -85,6 +88,9 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
             v = cells[lane_index][car_index]
             l = v+1
             l_other = l
+
+            # flaga okreslajaca czy pojazd zmienil pas
+            has_changed_lane = False
 
             # sprawdz czy jakis samochod bedzie blokowac
             is_someone_ahead = False
@@ -97,7 +103,7 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
                 # sprawdz czy na drugim pasie ktos bedzie blokowac
                 is_someone_ahead_other_lane = False
                 lane_index_other = 1 if lane_index == 0 else 0
-                for k in range(1, l_other):
+                for k in range(0, l_other):
                     if cells[lane_index_other][(car_index + k) % (N * cell_multip)] != -1:
                         is_someone_ahead_other_lane = True
                         break
@@ -112,20 +118,36 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
 
                     if not is_someone_before_other_lane:
                         # czy zmienic pas (losowosc)
-                        if random.random() < 0.8:
+                        if random.random() < p_change:
                             # print("Zmiana pasa, wooohoooo!")
                             # zmiana pasa - przeniesienie pojazdu z jednego pasu na drugi
 
-                            # czysc stary pas
-                            for tail_index in range(1, cell_multip):
-                                cells[lane_index][car_index - tail_index] = -1
-                            cells[lane_index][car_index] = -1
+                            # # czysc stary pas
+                            # for tail_index in range(1, cell_multip):
+                            #     cells[lane_index][car_index - tail_index] = -1
+                            # cells[lane_index][car_index] = -1
 
                             # nowy pas
-                            cells[lane_index_other][car_index] = v
-                            # ogon pojazdu
-                            for tail_index in range(1, cell_multip):
-                                cells[lane_index_other][car_index - tail_index] = -2
+                            if cells[lane_index_other][car_index] == -1:
+                                has_changed_lane = True
+
+                                cells_copy[lane_index_other][car_index] = v
+                                # ogon pojazdu
+                                for tail_index in range(1, cell_multip):
+                                    if (cells[lane_index_other][car_index - tail_index] != -1):
+                                        print("Kurwa")
+                                    cells_copy[lane_index_other][car_index - tail_index] = -2
+                            else:
+                                print("Kurwa")
+
+            # jezeli nie zmienil pasu to skopiuj w to samo miejsce
+            if has_changed_lane == False:
+                cells_copy[lane_index][car_index] = v
+
+                for tail_index in range(1, cell_multip-1):
+                    cells_copy[lane_index][car_index - tail_index] = -1
+
+        cells = cells_copy
 
         # zwiekszanie predkosci
         cells[:][cells >= 0] = cells[:][cells >= 0] + 1
@@ -144,7 +166,7 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
             #print("iteration: ", x, " index:", i, " v:", v)
             for k in range(1, v + 1):
                 if cells[lane_index][(car_index + k) % (N*cell_multip)] != -1:
-                    cells[lane_index][car_index] = k - 1
+                    cells[lane_index][car_index] = k-1
                     break
 
         # # losowe hamowanie
@@ -155,7 +177,10 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
                 car_index = i[1]
                 cells[lane_index][car_index] = cells[lane_index][car_index] - 1
 
-        moving_cars = np.transpose(np.nonzero(cells > 0))
+        cells_copy = np.zeros((2, N*cell_multip)).astype(int)
+        cells_copy = cells_copy - 1
+
+        moving_cars = np.transpose(np.nonzero(cells >= 0))
         # przemieszczanie
         for i in moving_cars:
             lane_index = i[0]
@@ -165,14 +190,16 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
             j = (car_index + v) % (N * cell_multip)
 
             # czysc stary ogon
-            for tail_index in range(1, cell_multip):
-                cells[lane_index][car_index - tail_index] = -1
-            cells[lane_index][car_index] = -1
+            # for tail_index in range(1, cell_multip):
+            #     cells[lane_index][car_index - tail_index] = -1
+            # cells[lane_index][car_index] = -1
 
-            cells[lane_index][j] = v
+            cells_copy[lane_index][j] = v
             # ogon pojazdu
             for tail_index in range(1, cell_multip):
-                cells[lane_index][j - tail_index] = -2
+                cells_copy[lane_index][j - tail_index] = -2
+
+        cells = cells_copy
 
         # dodanie drogi do listy iteracji
         iterations.append(np.copy(cells))
@@ -189,17 +216,24 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
 
 
 def main():
-    density_arr = np.arange(0.05, 0.6, 0.01)
-    flow_arr = np.copy(density_arr)
+    # density_arr = np.arange(0.05, 0.6, 0.01)
+    # flow_arr = np.copy(density_arr)
+    #
+    # # badamy model dla roznych gestosci ruchu
+    # for i in range(0, len(flow_arr)):
+    #     [flow, iterations] = rickert_sym(1000, density_arr[i], 5, 7)
+    #     flow_arr[i] = flow
+    #
+    # dp.fundamental_diagram(flow_arr, density_arr)
 
-    # badamy model dla roznych gestosci ruchu
-    for i in range(0, len(flow_arr)):
-        [flow, iterations] = rickert_sym(1000, density_arr[i], 5, 7)
-        flow_arr[i] = flow
+    [flow, iterations] = rickert_sym(30, 0.3, 5, 0.5, 120)
 
-    dp.fundamental_diagram(flow_arr, density_arr)
-    [flow, iterations] = rickert_sym(1000, 0.3, 5, 1, 120)
-    dp.offline_visualisation_two_lanes(iterations[-3:])
+    cells = iterations[0]
+    print(np.sum(cells >= 0))
+    cells = iterations[-1]
+    print(np.sum(cells >= 0))
+
+    dp.offline_visualisation_two_lanes(iterations[:])
 
 
 if __name__ == "__main__":
