@@ -118,6 +118,13 @@ def main():
     # dp.fundamental_diagram(flow_arr, density_arr)
 
     [flow, iterations] = nagel_sch(20, 0.8, 5, 0.5, 120)
+
+    cells = iterations[0]
+    print(np.sum(cells >= 0))
+    cells = iterations[-1]
+    print(np.sum(cells >= 0))
+
+
     #dp.image_visualisation(iterations)
     dp.offline_visualisation_one_lane(iterations[:])
 

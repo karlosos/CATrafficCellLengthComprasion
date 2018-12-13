@@ -130,24 +130,21 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
                             # nowy pas
                             if cells[lane_index_other][car_index] == -1:
                                 has_changed_lane = True
-
                                 cells_copy[lane_index_other][car_index] = v
+
                                 # ogon pojazdu
                                 for tail_index in range(1, cell_multip):
-                                    if (cells[lane_index_other][car_index - tail_index] != -1):
-                                        print("Kurwa")
                                     cells_copy[lane_index_other][car_index - tail_index] = -2
-                            else:
-                                print("Kurwa")
+
 
             # jezeli nie zmienil pasu to skopiuj w to samo miejsce
             if has_changed_lane == False:
                 cells_copy[lane_index][car_index] = v
 
-                for tail_index in range(1, cell_multip-1):
-                    cells_copy[lane_index][car_index - tail_index] = -1
+                for tail_index in range(1, cell_multip):
+                    cells_copy[lane_index][car_index - tail_index] = -2
 
-        cells = cells_copy
+        cells = cells_copy.copy()
 
         # zwiekszanie predkosci
         cells[:][cells >= 0] = cells[:][cells >= 0] + 1
@@ -226,14 +223,14 @@ def main():
     #
     # dp.fundamental_diagram(flow_arr, density_arr)
 
-    [flow, iterations] = rickert_sym(30, 0.3, 5, 0.5, 120)
+    [flow, iterations] = rickert_sym(1000, 0.8, 5, 1, 120)
 
     cells = iterations[0]
     print(np.sum(cells >= 0))
     cells = iterations[-1]
     print(np.sum(cells >= 0))
 
-    dp.offline_visualisation_two_lanes(iterations[:])
+    #dp.offline_visualisation_two_lanes(iterations[:])
 
 
 if __name__ == "__main__":
