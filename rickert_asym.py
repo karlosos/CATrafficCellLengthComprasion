@@ -134,7 +134,7 @@ def rickert_asym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
                     # sprawdz czy na drugim pasie ktos bedzie blokowac
                     is_someone_ahead_other_lane = False
                     lane_index_other = 1 if lane_index == 0 else 0
-                    for k in range(1, l_other):
+                    for k in range(0, l_other):
                         if cells[lane_index_other][(car_index + k) % (N * cell_multip)] != -1:
                             is_someone_ahead_other_lane = True
                             break
@@ -169,8 +169,8 @@ def rickert_asym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
             if has_changed_lane == False:
                 cells_copy[lane_index][car_index] = v
 
-                for tail_index in range(1, cell_multip-1):
-                    cells_copy[lane_index][car_index - tail_index] = -1
+                for tail_index in range(1, cell_multip):
+                    cells_copy[lane_index][car_index - tail_index] = -2
 
         cells = cells_copy
 
@@ -249,14 +249,14 @@ def main():
     #
     # dp.fundamental_diagram(flow_arr, density_arr)
 
-    [flow, iterations] = rickert_asym(1000, 0.8, 5, 0.5, 120)
+    [flow, iterations] = rickert_asym(1000, 0.8, 5, 1, 120)
 
     cells = iterations[0]
     print(np.sum(cells >= 0))
     cells = iterations[-1]
     print(np.sum(cells >= 0))
 
-    dp.offline_visualisation_two_lanes(iterations[:])
+    #dp.offline_visualisation_two_lanes(iterations[:])
 
 if __name__ == "__main__":
     main()
