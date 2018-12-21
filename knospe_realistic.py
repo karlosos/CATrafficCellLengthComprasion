@@ -5,8 +5,8 @@ import data_presentation as dp
 
 class Car:
     def __init__(self, road, y, x, length=7.5):
-        self.v = 0
-        self.v_next_step = 0
+        self.v = 15
+        self.v_next_step = 15
         self.v_max = 20
         self.x = x
         self.y = y  # lane index
@@ -16,7 +16,7 @@ class Car:
 
         self.p_d = 0.1
         self.p_b = 0.94
-        self.p_0 = 0.05
+        self.p_0 = 0.5
 
         self.p = 0
 
@@ -113,16 +113,15 @@ class Road:
 
     def step_2(self):
         for car in self.cars:
-            car.v_next_step = min(car.effective_distance(), car.v)
+            car.v_next_step = min(car.effective_distance(), car.v_next_step)
             if car.v_next_step < car.v:
                 car.b_next_step = True
 
     def step_3(self):
         for car in self.cars:
-            p = car.calculate_breaking_probability()
-            if random.random() < p:
+            if random.random() < car.p:
                 car.v_next_step = max(car.v_next_step - 1, 0)
-                if p == car.p_b:
+                if car.p == car.p_b:
                     car.b_next_step = True
 
     def step_4(self):
@@ -130,8 +129,12 @@ class Road:
         self.cells = self.cells - 1
 
         for index_of_car, car in enumerate(self.cars):
+
             car.b = car.b_next_step
             car.v = car.v_next_step
+
+            car.b_next_step = False
+
             car.x = (car.x + car.v) % self.N
 
             for i in range(car.length_in_cells):
@@ -164,6 +167,9 @@ class Road:
 
         for x in vehicles_indices:
             self.add_car(0, x)
+
+        for x in vehicles_indices:
+            self.add_car(1, x)
 
         self.fill_road()
 
