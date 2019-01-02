@@ -78,6 +78,149 @@ class TestCarMethods(unittest.TestCase):
 
         self.assertEqual(c1.effective_distance(), 7)
 
+    def test_incentive_criterion_BrakeLightsAreOn_ReturnFalse(self):
+        self.c.b = True
+        self.assertEqual(self.c.incentive_criterion(), False)
+
+    def test_incentive_criterion_VelocityIsGreaterThanDistance_ReturnTrue(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 0)
+        c2 = self.r.add_car(0, 20, 2)
+        c2.v = 9
+
+        c1.v = c1.gap_to_next_car() + 3
+        c1.b = False
+
+        self.assertEqual(c1.incentive_criterion(), True)
+
+    def test_incentive_criterion_VelocityIsLesserThanDistance_ReturnFalse(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 0)
+        c2 = self.r.add_car(0, 20, 2)
+        c2.v = 9
+
+        c1.v = c1.gap_to_next_car() - 3
+        c1.b = False
+
+        self.assertEqual(c1.incentive_criterion(), False)
+
+    def test_incentive_criterion_VelocityIsEqualToDistance_ReturnFalse(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 0)
+        c2 = self.r.add_car(0, 20, 2)
+        c2.v = 9
+
+        c1.v = c1.gap_to_next_car()
+        c1.b = False
+
+        self.assertEqual(c1.incentive_criterion(), False)
+
+
+class TestCarOtherLaneMethods(unittest.TestCase):
+    def setUp(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+
+    def test_pred_car_other_lane_TwoCarsOnOtherLaneTwoInSomeDistanceFromCar_ReturnNextCar(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 20)
+        succ = self.r.add_car(1, 0)
+        pred = self.r.add_car(1, 30)
+
+        self.assertEqual(pred, c1.pred_car_other_lane())
+
+    def test_succ_car_other_lane_TwoCarsOnOtherLaneTwoInSomeDistanceFromCar_ReturnPreviousCar(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 20)
+        succ = self.r.add_car(1, 0)
+        pred = self.r.add_car(1, 30)
+
+        self.assertEqual(succ, c1.succ_car_other_lane())
+
+    def test_pred_car_other_lane_TwoCarsOnOtherLaneOccupyingCarSpace_ReturnNextCar(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 20)
+        succ = self.r.add_car(1, 15)
+        pred = self.r.add_car(1, 25)
+
+        #print(self.r.cells[0])
+        #print(self.r.cells[1])
+        #print("Pred: ", pred.x)
+        #print("Calculated pred: ", c1.pred_car_other_lane().x)
+
+        self.assertEqual(pred, c1.pred_car_other_lane())
+
+    def test_succ_car_other_lane_TwoCarsOnOtherLaneOccupyingCarSpace_ReturnPreviousCar(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 20)
+        succ = self.r.add_car(1, 15)
+        pred = self.r.add_car(1, 25)
+
+        self.assertEqual(pred, c1.succ_car_other_lane())
+
+    def test_succ_car_other_lane_OneCarOtherLane_ReturnPreviousCar(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 20)
+        #succ = self.r.add_car(1, 15)
+        pred = self.r.add_car(1, 25)
+
+        self.assertEqual(pred, c1.succ_car_other_lane())
+
+    def test_succ_car_other_lane_OneCarOtherLane_ReturnNextCar(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 20)
+        succ = self.r.add_car(1, 15)
+        #pred = self.r.add_car(1, 25)
+
+        self.assertEqual(succ, c1.pred_car_other_lane())
+
+    def test_pred_car_other_lane_TwoCarsOnOtherLaneOneOccupySameSpace_ReturnNextCar(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 20)
+        succ = self.r.add_car(1, 20)
+        pred = self.r.add_car(1, 30)
+
+        self.assertEqual(pred, c1.pred_car_other_lane())
+
+    def test_succ_car_other_lane_TwoCarsOnOtherLaneOneOccupySameSpace_ReturnPreviousCar(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 20)
+        succ = self.r.add_car(1, 20)
+        pred = self.r.add_car(1, 30)
+
+        self.assertEqual(succ, c1.succ_car_other_lane())
+
+
+class TestCarTailMethods(unittest.TestCase):
+    def test_tail_x_CarInMiddleOfRoad_return_position_of_car_end(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 20)
+
+        self.assertEqual(c1.tail_x(), 14)
+
+    def test_tail_x_CarInStartAndEndOfRoad_return_position_of_car_end(self):
+        self.r = knsp.Road(100, 0.1, 1, 100)
+        c1 = self.r.add_car(0, 5)
+
+        self.assertEqual(c1.tail_x(), 99)
+
+    def test_tail_x_CarOfLength1InMiddleOfRoad_return_position_of_car_end(self):
+        self.r = knsp.Road(100, 0.1, 7, 100)
+        c1 = self.r.add_car(0, 20)
+
+        self.assertEqual(c1.tail_x(), 20)
+
+    def test_tail_x_CarOfLength1InStartAndEndOfRoad_return_position_of_car_end(self):
+        self.r = knsp.Road(100, 0.1, 7, 100)
+        c1 = self.r.add_car(0, 5)
+
+        self.assertEqual(c1.tail_x(), 5)
+
+    def test_calculate_distance(self):
+        self.r = knsp.Road(12, 0.1, 7, 100)
+        c1 = self.r.add_car(0, 5)
+        self.assertEqual(c1.calculate_distance(3, 7), 3)
+        self.assertEqual(c1.calculate_distance(7, 3), 7)
+
 class TestCarMethodsNextCarHomogeneous(unittest.TestCase):
     def setUp(self):
         self.r = knsp.Road(100, 0.1, 1, 100)
@@ -124,6 +267,7 @@ class TestCarMethodsNextCarHomogeneous(unittest.TestCase):
 
     def test_gap_to_next_car_OneCarOnLane_ReturnN(self):
         self.assertEqual(self.c.gap_to_next_car(), self.r.N)
+
 
 class TestCarMethodsNextCarUnhomogeneous(unittest.TestCase):
     def setUp(self):
@@ -173,6 +317,7 @@ class TestCarMethodsNextCarUnhomogeneous(unittest.TestCase):
     def test_gap_to_next_car_OneCarOnLane_ReturnN(self):
         self.assertEqual(self.c.gap_to_next_car(), self.r.N)
 
+
 class TestRoadMethods(unittest.TestCase):
     def setUp(self):
         self.r = knsp.Road(100, 0.1, 1, 100)
@@ -211,7 +356,6 @@ class TestRoadMethods(unittest.TestCase):
 
         self.assertEqual(c2, None)
         self.assertEqual(len(self.r.cars), 1)
-
 
 
 if __name__ == '__main__':

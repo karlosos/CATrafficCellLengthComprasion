@@ -10,6 +10,7 @@ class Car:
         self.v_max = 20
         self.x = x
         self.y = y  # lane index
+        self.y_next_step = y
         self.b = False
         self.b_next_step = False
         self.road = road
@@ -29,6 +30,10 @@ class Car:
                 return self.road.cars[self.road.cells[self.y][(self.x + i + 1) % (self.road.N-1)]]
 
     def gap_to_next_car(self):
+        """
+        Calculates d - distance-headway, gap to the next car
+        :return: d
+        """
         c = self.next_car()
         if c.x > self.x:
             return c.x - c.length_in_cells - self.x
@@ -66,6 +71,70 @@ class Car:
 
     def effective_distance(self):
         return self.gap_to_next_car() + max(self.v_anticipated() - self.road.gap_safety, 0)
+
+    def incentive_criterion(self):
+        return self.b == 0 and self.v > self.gap_to_next_car()
+
+    def other_lane(self):
+        if self.y == 0:
+            other_lane = 1
+        else:
+            other_lane = 0
+
+        return other_lane
+
+    def pred_car_other_lane(self):
+        """
+        Next car on other lane
+        :return:
+        """
+        other_lane = self.other_lane()
+
+        for i in range(self.road.N):
+            if self.road.cells[other_lane][(self.x + i + 1) % (self.road.N-1)] != -1:
+                return self.road.cars[self.road.cells[other_lane][(self.x + i + 1) % (self.road.N-1)]]
+
+    def succ_car_other_lane(self):
+        """
+        Previous car on other lane
+        :return:
+        """
+        other_lane = self.other_lane()
+
+        for i in range(self.road.N):
+            if self.road.cells[other_lane][(self.x - (i + 1)) % (self.road.N-1)] != -1:
+                return self.road.cars[self.road.cells[other_lane][(self.x - (i + 1)) % (self.road.N-1)]]
+
+    def tail_x(self):
+        return (self.x - self.length_in_cells + 1) % self.road.N
+
+    def calculate_distance(self, x1, x2):
+        if (x1 < x2):
+            return (x2 - x1 - 1) % self.road.N
+        elif (x1 > x2):
+            return self.road.N - (x1 - x2 - 1) - 2
+        else:
+            return 0
+
+    def d_succ(self):
+        succ = self.succ_car_other_lane()
+        return self.calculate_distance(succ.x, self.x)
+
+    def d_pred(self):
+        pred = self.pred_car_other_lane()
+        return self.calculate_distance(self.x, pred.x)
+
+    def effective_distance_pred(self):
+        pred = self.pred_car_other_lane()
+        d_pred = self.d_pred()
+        v_anti = min(pred.gap_to_next_car(), pred.v)
+        return d_pred + max(v_anti - self.road.gap_safety, 0)
+
+    def safety_criterion(self):
+        return self.effective_distance_pred() >= self.v and self.d_succ() >= self.succ_car_other_lane().v
+
+    def change_lane(self):
+        self.y_next_step = self.other_lane()
 
 class Road:
     def __init__(self, N, d, cell_length, num_of_iterations):
@@ -106,10 +175,8 @@ class Road:
     def step_1(self):
         for car in self.cars:
             n_car = car.next_car()
-            print(car.t_h(), car.t_s(), car.p)
             if (n_car.b == False and car.b == False) or (car.t_h() >= car.t_s()):
                 car.v_next_step = min(car.v + 1, car.v_max)
-                print("Acceleration: ", car.v_next_step)
 
     def step_2(self):
         for car in self.cars:
@@ -146,7 +213,7 @@ class Road:
         iterations.append(self.iteration_visualisation())
 
         for i in range(self.num_of_iterations):
-            print("It: ", i)
+            self.change_lanes()
             self.step_0()
             self.step_1()
             self.step_2()
@@ -155,6 +222,15 @@ class Road:
             iterations.append(self.iteration_visualisation())
 
         return iterations
+
+    def change_lanes(self):
+        for car in self.cars:
+            car.y_next_step = car.y
+            if car.incentive_criterion() and car.safety_criterion():
+                car.change_lane()
+
+        for car in self.cars:
+            car.y = car.y_next_step
 
     def populate_road(self):
         # lambda do znalezienia indeksow gdzie wstawic samochody
@@ -170,6 +246,8 @@ class Road:
 
         for x in vehicles_indices:
             self.add_car(1, x)
+
+        self.cars[0].v_max = 5
 
         self.fill_road()
 
@@ -190,7 +268,7 @@ class Road:
 
 
 def main():
-    s = Road(500, 0.1, 1.5, 300)
+    s = Road(500, 0.05, 7, 300)
     sim = s.simulation()
     dp.offline_visualisation_two_lanes(sim)
 
