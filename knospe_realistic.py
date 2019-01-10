@@ -7,7 +7,7 @@ class Car:
     def __init__(self, road, y, x, length=7.5):
         self.v = 15
         self.v_next_step = 15
-        self.v_max = 20
+        self.v_max = 20 * road.cell_multip
         self.x = x
         self.y = y  # lane index
         self.y_next_step = y
@@ -138,12 +138,13 @@ class Car:
 
 class Road:
     def __init__(self, N, d, cell_length, num_of_iterations):
-        self.N = N
         self.num_of_iterations = num_of_iterations
         self.d = d
         self.cell_length = cell_length
+        self.cell_multip = int(7.5/cell_length)
+        self.N = N * self.cell_multip
         #self.num_of_vehicles = d * N
-        self.cells = np.zeros((2, N)).astype(int)
+        self.cells = np.zeros((2, self.N)).astype(int)
         self.cells = self.cells - 1
 
         self.h = 6
@@ -221,7 +222,16 @@ class Road:
             self.step_4()
             iterations.append(self.iteration_visualisation())
 
-        return iterations
+        # liczymy srednia predkosc z ostatniej iteracji
+        average_velocity = 0
+        for car in self.cars:
+            average_velocity += car.v
+
+        average_velocity = average_velocity/len(self.cars)
+
+        flow = self.d * average_velocity
+
+        return flow, iterations
 
     def change_lanes(self):
         for car in self.cars:
@@ -268,9 +278,26 @@ class Road:
 
 
 def main():
-    s = Road(500, 0.05, 7, 300)
-    sim = s.simulation()
-    dp.offline_visualisation_two_lanes(sim)
+    density_arr = np.arange(0.05, 0.6, 0.01)
+    flow_arr = np.zeros(len(density_arr))
+
+    for j in range(2):
+        #badamy model dla roznych gestosci ruchu
+        for i in range(0, len(density_arr)):
+            s = Road(500, density_arr[i], 1, 50)
+            [flow, iterations] = s.simulation()
+            flow_arr[i] += flow
+
+
+    for i in range(2):
+        flow_arr[i] = flow_arr[i]/5
+
+    dp.fundamental_diagram(flow_arr, density_arr)
+
+    # s = Road(500, 0.05, 1, 300)
+    # flow, iterations = s.simulation()
+    # dp.offline_visualisation_two_lanes(iterations)
+
 
 if __name__ == "__main__":
     main()
