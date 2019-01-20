@@ -1,5 +1,6 @@
 import unittest
 import knospe_realistic as knsp
+import numpy as np
 
 
 class TestCarMethods(unittest.TestCase):
@@ -357,6 +358,56 @@ class TestRoadMethods(unittest.TestCase):
         self.assertEqual(c2, None)
         self.assertEqual(len(self.r.cars), 1)
 
+class TestPopulateMethod(unittest.TestCase):
+    def test_simulation_increasingNumberOfCarLength1(self):
+        density_arr = np.arange(0.05, 0.6, 0.01)
+        flow_arr = np.zeros(len(density_arr))
+
+        previous_number = 0
+        # badamy model dla roznych gestosci ruchu
+        for i in range(0, len(density_arr)):
+            s = knsp.Road(50, density_arr[i], 1, 50)
+            s.simulation()
+            print("Gestosc teoretyczna vs realna: ", s.d, np.sum(s.cells > -1)/(s.N * 2))
+            self.assertGreaterEqual(len(s.cars), previous_number)
+            previous_number = len(s.cars)
+
+    def test_populate_increasingNumberOfCarLength7(self):
+        density_arr = np.arange(0.05, 0.6, 0.01)
+        flow_arr = np.zeros(len(density_arr))
+
+        previous_number = 0
+        # badamy model dla roznych gestosci ruchu
+        for i in range(0, len(density_arr)):
+            s = knsp.Road(50, density_arr[i], 7, 50)
+            s.populate_road()
+            self.assertGreaterEqual(len(s.cars), previous_number)
+            previous_number = len(s.cars)
+
+    def test_populate_increasingNumberOfCarLength(self):
+        density_arr = np.arange(0.05, 0.6, 0.01)
+        flow_arr = np.zeros(len(density_arr))
+
+        previous_number = 0
+        # badamy model dla roznych gestosci ruchu
+        for i in range(0, len(density_arr)):
+            s = knsp.Road(50, density_arr[i], 1, 50)
+            s.populate_road()
+            print(s.d, s.N, len(s.cars), previous_number)
+            self.assertGreaterEqual(len(s.cars), previous_number)
+            previous_number = len(s.cars)
+
+    def test_vehicleIndices_increasingNumberOfCarLength(self):
+        density_arr = np.arange(0.05, 0.6, 0.01)
+        s = knsp.Road(50, 0.1, 1, 50)
+        flow_arr = np.zeros(len(density_arr))
+
+        previous_number = 0
+        # badamy model dla roznych gestosci ruchu
+        for i in range(0, len(density_arr)):
+            vehicles_indeces = s.get_vehicle_indeces_for_populate(density_arr[i], 350)
+            self.assertGreaterEqual(len(vehicles_indeces), previous_number)
+            previous_number = len(vehicles_indeces)
 
 if __name__ == '__main__':
     unittest.main()

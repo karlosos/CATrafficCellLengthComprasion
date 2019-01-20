@@ -49,7 +49,7 @@ class Car:
         n_car = self.next_car()
         if n_car.b is True and t_h < t_s:
             return self.p_b
-        elif self.v == 0 and (n_car.b is True and t_h < t_s) == False:
+        elif self.v == 0 and (n_car.b is True and t_h < t_s) is False:
             return self.p_0
         else:
             return self.p_d
@@ -158,6 +158,7 @@ class Road:
         # check if can add car
         for i in range(c.length_in_cells):
             if self.cells[y][x-i] != -1:
+                print("Couldn't add car!")
                 return None
 
         self.cars.append(c)
@@ -242,14 +243,17 @@ class Road:
         for car in self.cars:
             car.y = car.y_next_step
 
-    def populate_road(self):
+    def get_vehicle_indeces_for_populate(self, d, n):
         # lambda do znalezienia indeksow gdzie wstawic samochody
         # m to liczba elementow do wstawienia do macierzy
         # n to dlugosc wektora
         # zwraca indeksy wektora pod ktore nalezy wstawic elementy
         # aby mialy w miare jednakowe odstepy
         f = lambda m, n: [i * n // m + n // (2 * m) for i in range(m)]
-        vehicles_indices = f(np.ceil(self.d * self.N).astype(int), self.N-1)
+        return f(np.ceil(d * n).astype(int), n - 1)
+
+    def populate_road(self):
+        vehicles_indices = self.get_vehicle_indeces_for_populate(self.d, self.N)
 
         for x in vehicles_indices:
             self.add_car(0, x)
@@ -277,26 +281,36 @@ class Road:
         return np.copy(cells)
 
 
-def main():
+def simulation():
+    s = Road(500, 0.05, 1, 300)
+    flow, iterations = s.simulation()
+    dp.offline_visualisation_two_lanes(iterations)
+
+
+def fundamental_diagram():
     density_arr = np.arange(0.05, 0.6, 0.01)
     flow_arr = np.zeros(len(density_arr))
 
-    for j in range(2):
+    cell_length = 7
+
+    cell_multip = Road(10, 0.5, cell_length, 50).cell_multip
+    number_of_retries = 5
+    for j in range(number_of_retries):
         #badamy model dla roznych gestosci ruchu
         for i in range(0, len(density_arr)):
-            s = Road(500, density_arr[i], 1, 50)
+            s = Road(100, density_arr[i]/cell_multip, cell_length, 50)
             [flow, iterations] = s.simulation()
             flow_arr[i] += flow
+            print(i/len(density_arr), len(s.cars), s.d)
 
 
-    for i in range(2):
-        flow_arr[i] = flow_arr[i]/5
+    # for i in range(number_of_retries):
+    #     flow_arr[i] = flow_arr[i]/(number_of_retries+1)
 
-    dp.fundamental_diagram(flow_arr, density_arr)
+    dp.fundamental_diagram(flow_arr/(number_of_retries+1), density_arr)
 
-    # s = Road(500, 0.05, 1, 300)
-    # flow, iterations = s.simulation()
-    # dp.offline_visualisation_two_lanes(iterations)
+def main():
+    fundamental_diagram()
 
 
 if __name__ == "__main__":
