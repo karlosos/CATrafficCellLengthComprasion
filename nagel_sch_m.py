@@ -8,10 +8,12 @@ modelu jako klasycznego modelu NagelSch.
 
 import numpy as np
 import random
+import comprasion
+import matplotlib.pyplot as plt
 
 import data_presentation as dp
 
-def nagel_sch(N, d, vmax, cell_length=7.5, num_of_iterations=30):
+def nagel_sch(N, d, vmax, cell_length=7.5, p = 0.3, num_of_iterations=30):
     """
     Implementacja modelu nagel_sch
 
@@ -75,7 +77,7 @@ def nagel_sch(N, d, vmax, cell_length=7.5, num_of_iterations=30):
 
         # losowe hamowanie
         for i in np.nonzero(cells > 0)[0]:
-            if random.random() < 0.3:
+            if random.random() < p:
                 cells[i] = cells[i] - 1
 
         # przemieszczanie
@@ -101,22 +103,7 @@ def nagel_sch(N, d, vmax, cell_length=7.5, num_of_iterations=30):
     flow = d * average_velocity
     return flow, iterations
 
-
-################
-# MAIN
-################
-
-def main():
-    # density_arr = np.arange(0.05, 0.6, 0.01)
-    # flow_arr = np.copy(density_arr)
-    #
-    # #badamy model dla roznych gestosci ruchu
-    # for i in range(0, len(flow_arr)):
-    #    [flow, iterations] = nagel_sch(1000, density_arr[i], 5, 7.5)
-    #    flow_arr[i] = flow
-    #
-    # dp.fundamental_diagram(flow_arr, density_arr)
-
+def model_visualisation():
     [flow, iterations] = nagel_sch(20, 0.8, 5, 0.5, 120)
 
     cells = iterations[0]
@@ -127,6 +114,50 @@ def main():
 
     #dp.image_visualisation(iterations)
     dp.offline_visualisation_one_lane(iterations[:])
+
+def compare_various_lengths():
+    density_arr = np.arange(0.05, 0.6, 0.01)
+    flow_arr_1 = np.zeros(len(density_arr))
+    flow_arr_2 = np.zeros(len(density_arr))
+    flow_arr_3 = np.zeros(len(density_arr))
+    flow_arr_4 = np.zeros(len(density_arr))
+
+    x = 1
+    for _ in range(x):
+        # badamy model dla roznych gestosci ruchu
+        for i in range(0, len(flow_arr_1)):
+            [flow_1, iterations] = nagel_sch(1000, density_arr[i], 5, 7.5, 0.3)
+            [flow_2, iterations] = nagel_sch(1000, density_arr[i], 5, 1, 0.3)
+            [flow_3, iterations] = nagel_sch(1000, density_arr[i], 5, 7.5, 0.5)
+            [flow_4, iterations] = nagel_sch(1000, density_arr[i], 5, 1, 0.5)
+            flow_arr_1[i] += flow_1
+            flow_arr_2[i] += flow_2
+            flow_arr_3[i] += flow_3
+            flow_arr_4[i] += flow_4
+
+    flow_arr_1 = flow_arr_1 / x
+    flow_arr_2 = flow_arr_2 / x
+    flow_arr_3 = flow_arr_3 / x
+    flow_arr_4 = flow_arr_4 / x
+
+    comprasion.fundamental_diagram_comprasion(flow_arr_1, density_arr, "l = 7.5, p = 0.3")
+    comprasion.fundamental_diagram_comprasion(flow_arr_2, density_arr, "l = 1, p = 0.3")
+    comprasion.fundamental_diagram_comprasion(flow_arr_3, density_arr, "l = 7.5, p = 0.5")
+    comprasion.fundamental_diagram_comprasion(flow_arr_4, density_arr, "l = 1, p = 0.5")
+
+    plt.legend()
+    plt.savefig("p_short.png")
+
+################
+# MAIN
+################
+
+def main():
+    compare_various_lengths()
+    # uncomment this if you want to preview
+    # model visualisation in console
+    # model_visualisation()
+
 
 
 if __name__ == "__main__":

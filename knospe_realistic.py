@@ -1,6 +1,8 @@
 import numpy as np
 import random
 import data_presentation as dp
+import comprasion
+import matplotlib.pyplot as plt
 
 
 class Car:
@@ -280,7 +282,6 @@ class Road:
 
         return np.copy(cells)
 
-
 def simulation():
     s = Road(500, 0.05, 1, 300)
     flow, iterations = s.simulation()
@@ -309,9 +310,48 @@ def fundamental_diagram():
 
     dp.fundamental_diagram(flow_arr/(number_of_retries+1), density_arr)
 
-def main():
-    fundamental_diagram()
 
+def compare():
+    density_arr = np.arange(0.05, 0.6, 0.01)
+    flow_arr_1 = np.zeros(len(density_arr))
+    flow_arr_2 = np.zeros(len(density_arr))
+    flow_arr_3 = np.zeros(len(density_arr))
+    flow_arr_4 = np.zeros(len(density_arr))
+
+    x = 1
+    for _ in range(x):
+        # badamy model dla roznych gestosci ruchu
+        for i in range(0, len(flow_arr_1)):
+            s1 = Road(500, density_arr[i], 7.5, 50)
+            s2 = Road(500, density_arr[i], 3, 50)
+            s3 = Road(500, density_arr[i], 1, 50)
+            s4 = Road(500, density_arr[i], 0.8, 50)
+
+            [flow_1, iterations] = s1.simulation()
+            [flow_2, iterations] = s2.simulation()
+            [flow_3, iterations] = s3.simulation()
+            [flow_4, iterations] = s4.simulation()
+            flow_arr_1[i] += flow_1
+            flow_arr_2[i] += flow_2
+            flow_arr_3[i] += flow_3
+            flow_arr_4[i] += flow_4
+
+    flow_arr_1 = flow_arr_1 / x
+    flow_arr_2 = flow_arr_2 / x
+    flow_arr_3 = flow_arr_3 / x
+    flow_arr_4 = flow_arr_4 / x
+
+    comprasion.fundamental_diagram_comprasion(flow_arr_1, density_arr, "l = 7.5")
+    comprasion.fundamental_diagram_comprasion(flow_arr_2, density_arr, "l = 3")
+    comprasion.fundamental_diagram_comprasion(flow_arr_3, density_arr, "l = 1")
+    comprasion.fundamental_diagram_comprasion(flow_arr_4, density_arr, "l = 0.5")
+
+    plt.legend()
+    plt.savefig("knsope_length.png")
+
+
+def main():
+    compare()
 
 if __name__ == "__main__":
     main()

@@ -7,10 +7,13 @@ Model rickert symetryczny
 
 import numpy as np
 import random
+import comprasion
+import matplotlib.pyplot as plt
+import rickert_asym as ra
 
 import data_presentation as dp
 
-def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
+def rickert_sym(N, d, vmax, cell_length, p, p_change, num_of_iterations=30):
     """
     Implementacja modelu rickert symetryczny
 
@@ -38,7 +41,7 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
 
     # parametry do rickert
     l_other_back = vmax + 1
-    p_change = 1
+    #p_change = 1
 
     # lambda do znalezienia indeksow gdzie wstawic samochody
     # m to liczba elementow do wstawienia do macierzy
@@ -169,7 +172,7 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
         # # losowe hamowanie
         moving_cars = np.transpose(np.nonzero(cells > 0))
         for i in moving_cars:
-            if random.random() < 0.3:
+            if random.random() < p:
                 lane_index = i[0]
                 car_index = i[1]
                 cells[lane_index][car_index] = cells[lane_index][car_index] - 1
@@ -206,6 +209,38 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
     flow = d * average_velocity
     return flow, iterations
 
+def compare():
+    density_arr = np.arange(0.05, 0.6, 0.01)
+    flow_arr_1 = np.zeros(len(density_arr))
+    flow_arr_2 = np.zeros(len(density_arr))
+    flow_arr_3 = np.zeros(len(density_arr))
+    flow_arr_4 = np.zeros(len(density_arr))
+
+    x = 50
+    for _ in range(x):
+        # badamy model dla roznych gestosci ruchu
+        for i in range(0, len(flow_arr_1)):
+            [flow_1, iterations] = rickert_sym(N=1000, d=density_arr[i], vmax=5, cell_length=7.5, p=0.2, p_change=1)
+            [flow_2, iterations] = rickert_sym(N=1000, d=density_arr[i], vmax=5, cell_length=0.5, p=0.2, p_change=1)
+            [flow_3, iterations] = ra.rickert_asym(N=1000, d=density_arr[i], vmax=5, cell_length=7.5, p=0.2, p_change=1)
+            [flow_4, iterations] = ra.rickert_asym(N=1000, d=density_arr[i], vmax=5, cell_length=0.5, p=0.2, p_change=1)
+            flow_arr_1[i] += flow_1
+            flow_arr_2[i] += flow_2
+            flow_arr_3[i] += flow_3
+            flow_arr_4[i] += flow_4
+
+    flow_arr_1 = flow_arr_1 / x
+    flow_arr_2 = flow_arr_2 / x
+    flow_arr_3 = flow_arr_3 / x
+    flow_arr_4 = flow_arr_4 / x
+
+    comprasion.fundamental_diagram_comprasion(flow_arr_1, density_arr, "sym l = 7.5")
+    comprasion.fundamental_diagram_comprasion(flow_arr_2, density_arr, "sym l = 0.5")
+    comprasion.fundamental_diagram_comprasion(flow_arr_3, density_arr, "asym l = 7.5")
+    comprasion.fundamental_diagram_comprasion(flow_arr_4, density_arr, "asym l = 0.5")
+
+    plt.legend()
+    plt.savefig("rickert_sym_vs_asym.png")
 
 ################
 # MAIN
@@ -213,25 +248,7 @@ def rickert_sym(N, d, vmax, cell_length=7.5, num_of_iterations=30):
 
 
 def main():
-    # density_arr = np.arange(0.05, 0.6, 0.01)
-    # flow_arr = np.copy(density_arr)
-    #
-    # # badamy model dla roznych gestosci ruchu
-    # for i in range(0, len(flow_arr)):
-    #     [flow, iterations] = rickert_sym(1000, density_arr[i], 5, 7)
-    #     flow_arr[i] = flow
-    #
-    # dp.fundamental_diagram(flow_arr, density_arr)
-
-    [flow, iterations] = rickert_sym(1000, 0.8, 5, 1, 120)
-
-    cells = iterations[0]
-    print(np.sum(cells >= 0))
-    cells = iterations[-1]
-    print(np.sum(cells >= 0))
-
-    #dp.offline_visualisation_two_lanes(iterations[:])
-
+    compare()
 
 if __name__ == "__main__":
     main()
