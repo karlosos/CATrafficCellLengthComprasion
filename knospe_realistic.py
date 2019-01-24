@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 
 class Car:
-    def __init__(self, road, y, x, length=7.5):
+    def __init__(self, road, y, x, length=7.5, p_b=0.94):
         self.v = 15
         self.v_next_step = 15
         self.v_max = 20 * road.cell_multip
@@ -18,7 +18,7 @@ class Car:
         self.road = road
 
         self.p_d = 0.1
-        self.p_b = 0.94
+        self.p_b = p_b
         self.p_0 = 0.5
 
         self.p = 0
@@ -139,7 +139,7 @@ class Car:
         self.y_next_step = self.other_lane()
 
 class Road:
-    def __init__(self, N, d, cell_length, num_of_iterations):
+    def __init__(self, N, d, cell_length, num_of_iterations, p_b):
         self.num_of_iterations = num_of_iterations
         self.d = d
         self.cell_length = cell_length
@@ -148,6 +148,7 @@ class Road:
         #self.num_of_vehicles = d * N
         self.cells = np.zeros((2, self.N)).astype(int)
         self.cells = self.cells - 1
+        self.p_b = p_b
 
         self.h = 6
         self.gap_safety = 7
@@ -155,7 +156,7 @@ class Road:
         self.cars = []
 
     def add_car(self, y, x, car_length = 7.5):
-        c = Car(self, y, x, car_length)
+        c = Car(self, y, x, car_length, self.p_b)
 
         # check if can add car
         for i in range(c.length_in_cells):
@@ -318,14 +319,23 @@ def compare():
     flow_arr_3 = np.zeros(len(density_arr))
     flow_arr_4 = np.zeros(len(density_arr))
 
-    x = 1
+    s1 = Road(200, 0.5, 7.5, 50, 0.94)
+    s2 = Road(200, 0.5, 3, 50, 0.94)
+
+    cell_multip_1 = s1.cell_multip
+    cell_multip_2 = s1.cell_multip
+    cell_multip_3 = s2.cell_multip
+    cell_multip_4 = s2.cell_multip
+
+    x = 10
     for _ in range(x):
+        print(_)
         # badamy model dla roznych gestosci ruchu
         for i in range(0, len(flow_arr_1)):
-            s1 = Road(500, density_arr[i], 7.5, 50)
-            s2 = Road(500, density_arr[i], 3, 50)
-            s3 = Road(500, density_arr[i], 1, 50)
-            s4 = Road(500, density_arr[i], 0.8, 50)
+            s1 = Road(500, density_arr[i]/cell_multip_1, 7.5, 100, 0.93)
+            s2 = Road(100, density_arr[i]/cell_multip_2, 7.5, 100, 0.40)
+            s3 = Road(100, density_arr[i]/cell_multip_3, 3, 30, 0.93)
+            s4 = Road(100, density_arr[i]/cell_multip_4, 3, 30, 0.40)
 
             [flow_1, iterations] = s1.simulation()
             [flow_2, iterations] = s2.simulation()
@@ -341,13 +351,13 @@ def compare():
     flow_arr_3 = flow_arr_3 / x
     flow_arr_4 = flow_arr_4 / x
 
-    comprasion.fundamental_diagram_comprasion(flow_arr_1, density_arr, "l = 7.5")
-    comprasion.fundamental_diagram_comprasion(flow_arr_2, density_arr, "l = 3")
-    comprasion.fundamental_diagram_comprasion(flow_arr_3, density_arr, "l = 1")
-    comprasion.fundamental_diagram_comprasion(flow_arr_4, density_arr, "l = 0.5")
+    comprasion.fundamental_diagram_comprasion(flow_arr_1, density_arr, "l = 7.5, p_b = 0.94")
+    comprasion.fundamental_diagram_comprasion(flow_arr_2, density_arr, "l = 7.5, p_b = 0.4")
+    comprasion.fundamental_diagram_comprasion(flow_arr_3, density_arr, "l = 3, p_b = 0.94")
+    comprasion.fundamental_diagram_comprasion(flow_arr_4, density_arr, "l = 3, p_b = 0.4")
 
     plt.legend()
-    plt.savefig("knsope_length.png")
+    plt.savefig("knsope_length_new.png")
 
 
 def main():
