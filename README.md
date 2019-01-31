@@ -24,5 +24,5 @@ Plik | Opis
 `src/data_presentation.py` | Skrypt z metodami do generowania diagramów fundamentalnych i wizualizacji
 `src/nagel_sch.py` | Model Nagela podstawowy - bez zmiennej długości komórki
 `src/tests/` | Testy jednostkowe dla modelu Knospe
-
-
+`data` | Dane zebrane z modeli, które automatycznie nie generują diagramów
+`diagrams` | Wszystkie diagramy użyte w dokumencie podsumowującym badania
